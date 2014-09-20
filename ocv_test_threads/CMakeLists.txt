@@ -1,0 +1,5 @@
+cmake_minimum_required(VERSION 2.8)
+project( Sock_Test )
+find_package( OpenCV REQUIRED )
+add_executable( Sock_Test sock_test.cpp )
+target_link_libraries( Sock_Test ${OpenCV_LIBS} )
