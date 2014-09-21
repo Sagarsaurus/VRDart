@@ -17,7 +17,9 @@ class VRDETECTOR {
     VideoCapture cap;
     SimpleBlobDetector detector;
     std::vector<KeyPoint> refPoints;
-    
+    std::vector<KeyPoint> hitPoints;
+    int sockHit = 0;
+    int sockHitTimer = 0;
     struct PointCount {
         KeyPoint p;
         int count, age;
@@ -55,6 +57,8 @@ public:
     
     void updateRefPoints(std::vector<KeyPoint> keypoints){
         std::vector<PointCount> newPoints;
+        float hitX = 0.0;
+        float hitY = 0.0;
         for (KeyPoint new_p: keypoints){
             bool isNew = true;
             for (PointCount &old_p: pointHistory){
@@ -64,10 +68,40 @@ public:
                     break;
                 }
             }
-            if (isNew) {
+            if (isNew) 
+            {
                 newPoints.push_back({new_p, 0, 0});
+                sockHit = !sockHitTimer;
             }
         }
+
+        if(sockHit)
+        {
+            for (PointCount hit_p: newPoints)
+            {
+                hitX += hit_p.p.pt.x;
+                hitY += hit_p.p.pt.y; 
+                
+            }
+            hitX /= newPoints.size();
+            hitY /= newPoints.size();
+            
+            hitPoints.push_back(KeyPoint(hitX, hitY, 1));
+            sockHit = 0;
+            sockHitTimer++;
+        }
+
+        if(sockHitTimer) //count and reset sockHit to not count extra points
+        {
+            sockHitTimer++;
+            if(sockHitTimer >= 20)
+            {
+                sockHitTimer = 0;
+            }
+        }
+	
+	
+
         for (PointCount &old_p: pointHistory){
             old_p.age++;
         }
@@ -79,6 +113,9 @@ public:
         refPoints.clear();
         for (PointCount p: pointHistory)
             refPoints.push_back(p.p);
+        for (KeyPoint p: hitPoints)
+            refPoints.push_back(p);
+
         for( std::vector<PointCount>::const_iterator i = pointHistory.begin(); i != pointHistory.end(); ++i)
             if (i->age > 25) {
                 std::cout << " ("<< (int) i->p.pt.x << ' '<< (int) i->p.pt.y << ") ";
@@ -99,7 +136,7 @@ public:
             
             //cvtColor(image,image,CV_RGB2GRAY);
             
-            image.convertTo(image, -1, 2, 0);
+            image.convertTo(image, -1, 1.5, 0);
             
             detector.detect( image, keypoints );
             
