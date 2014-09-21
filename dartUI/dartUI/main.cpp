@@ -20,8 +20,8 @@ int grid = sizey/10;
 pthread_mutex_t netMutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_t netThread;
 
-int hX;
-int hY;
+float hX;
+float hY;
 char newData = 0;
 
 class Target : public sf::Drawable {
@@ -182,8 +182,8 @@ void *cv_comm(void *ptr)
     {
         recv(s,buf, sizeof(buf), 0);
         pthread_mutex_lock( &netMutex );
-        hX = ntohl(buf[0]);
-        hY = ntohl(buf[1]);
+        hX = buf[0];
+        hY = buf[1];
         newData = 1;
         pthread_mutex_unlock( &netMutex );
     }

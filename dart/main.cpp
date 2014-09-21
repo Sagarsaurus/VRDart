@@ -76,8 +76,10 @@ public:
         std::vector<PointCount> newPoints;
         float hitX = 0.0;
         float hitY = 0.0;
-        float markX = -1.0;
-        float markY = -1.0;
+        float markTopX = -1.0;
+        float markTopY = -1.0;
+        float markBottomX = -1.0;
+        float markBottomY = -1.0;
         for (KeyPoint new_p: keypoints){
             bool isNew = true;
             for (PointCount &old_p: pointHistory){
@@ -107,17 +109,22 @@ public:
 
             
             for (PointCount old_p: pointHistory){
-                if(markX < 0 || markY < 0 || (markX < old_p.p.pt.x && markY < old_p.p.pt.y))
+                if(markTopX < 0 || markTopY < 0 || (markTopX < old_p.p.pt.x && markTopY < old_p.p.pt.y))
                 {
-                    markX = old_p.p.pt.x;
-                    markY = old_p.p.pt.y;
+                    markTopX = old_p.p.pt.x;
+                    markTopY = old_p.p.pt.y;
+                }
+                if(markBottomX < 0 || markBottomY < 0 || (markBottomX > old_p.p.pt.x && markBottomY > old_p.p.pt.y))
+                {
+                    markBottomX = old_p.p.pt.x;
+                    markBottomY = old_p.p.pt.y;
                 }
             }
            
             //loads the x,y location and tells the net thread to send it 
             pthread_mutex_lock( &netMutex );
-            hX = hitX - markX;
-            hY = hitY - markY;
+            hX = (hitX - markTopX) / (markBottomX - markTopX);
+            hY = (hitY - markTopY) / (markBottomY - markTopY);
             readyToSend = 1;
             pthread_cond_signal( &netCond);
             pthread_mutex_unlock(&netMutex);
@@ -227,7 +234,7 @@ int initNetwork(int port)
 void *ui_comm( void *ptr )
 {
     
-    int buf[2];
+    float buf[2];
     int rc = 0;
     int s = *((int*)ptr);
     while(1)
@@ -237,8 +244,8 @@ void *ui_comm( void *ptr )
         {
             rc = pthread_cond_wait( &netCond, &netMutex );
         }
-        buf[0] = htonl((int)hX);
-        buf[1] = htonl((int)hY);
+        buf[0] = hX;
+        buf[1] = hY;
         readyToSend = 0; 
         pthread_mutex_unlock(&netMutex);
         
