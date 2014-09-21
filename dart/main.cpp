@@ -40,7 +40,7 @@ public:
         params.filterByColor = false;
         params.filterByCircularity = false;
         params.filterByArea = true;
-        params.minArea = 1000.0f;
+        params.minArea = 200.0f;
         params.maxArea = 5000.0f;
         params.blobColor = 0;
         detector = SimpleBlobDetector( params );
@@ -135,8 +135,9 @@ public:
             cap >> image; // get a new frame from camera
             
             //cvtColor(image,image,CV_RGB2GRAY);
+            image = image(cv::Rect(100, 100, 600, 500));
             
-            image.convertTo(image, -1, 1.5, 0);
+            image.convertTo(image, -1, 2, 0);
             
             detector.detect( image, keypoints );
             
@@ -147,7 +148,7 @@ public:
             //-- Draw keypoints
             Mat img_keypoints_1;
             
-            drawKeypoints( image, refPoints, img_keypoints_1, Scalar(255, 255, 255), DrawMatchesFlags::DEFAULT );
+            drawKeypoints( image, refPoints, img_keypoints_1, Scalar(255, 0, 255), DrawMatchesFlags::DEFAULT );
             
             imshow("feed", img_keypoints_1);
             

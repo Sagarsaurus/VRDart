@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDESourceControlProjectFavoriteDictionaryKey</key>
+	<false/>
+	<key>IDESourceControlProjectIdentifier</key>
+	<string>7F66CF86-874F-438D-ABFB-6DA2BAFA982C</string>
+	<key>IDESourceControlProjectName</key>
+	<string>VRDart</string>
+	<key>IDESourceControlProjectOriginsDictionary</key>
+	<dict>
+		<key>52B2B29A-C3C4-423D-B17A-9D53BA59165F</key>
+		<string>https://github.com/Sagarsaurus/VRDart.git</string>
+		<key>595D4AC9-6BFB-43AD-81F6-8C741895B54C</key>
+		<string>https://github.com/Sagarsaurus/VRDart.git</string>
+	</dict>
+	<key>IDESourceControlProjectPath</key>
+	<string>dartUI/VRDart/VRDart.xcodeproj/project.xcworkspace</string>
+	<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
+	<dict>
+		<key>52B2B29A-C3C4-423D-B17A-9D53BA59165F</key>
+		<string>../../../../../../dev/VRDart</string>
+		<key>595D4AC9-6BFB-43AD-81F6-8C741895B54C</key>
+		<string>../../../..</string>
+	</dict>
+	<key>IDESourceControlProjectURL</key>
+	<string>https://github.com/Sagarsaurus/VRDart.git</string>
+	<key>IDESourceControlProjectVersion</key>
+	<integer>110</integer>
+	<key>IDESourceControlProjectWCCIdentifier</key>
+	<string>595D4AC9-6BFB-43AD-81F6-8C741895B54C</string>
+	<key>IDESourceControlProjectWCConfigurations</key>
+	<array>
+		<dict>
+			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
+			<string>public.vcs.git</string>
+			<key>IDESourceControlWCCIdentifierKey</key>
+			<string>595D4AC9-6BFB-43AD-81F6-8C741895B54C</string>
+			<key>IDESourceControlWCCName</key>
+			<string>VRDart</string>
+		</dict>
+		<dict>
+			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
+			<string>public.vcs.git</string>
+			<key>IDESourceControlWCCIdentifierKey</key>
+			<string>52B2B29A-C3C4-423D-B17A-9D53BA59165F</string>
+			<key>IDESourceControlWCCName</key>
+			<string>VRDart</string>
+		</dict>
+	</array>
+</dict>
+</plist>

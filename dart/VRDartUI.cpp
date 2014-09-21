@@ -3,9 +3,25 @@
 
 void drawTarget(int percent, int width, int height, int x, int y);
 
-int main()
-{
-  drawTarget(20, 200, 200, 80, 90);
+int main() {
+    while (window.isOpen())
+    {
+        sf::Event event;
+        while (window.pollEvent(event))
+        {
+            if (event.type == sf::Event::Closed)
+                window.close();
+        }
+        
+        window.clear();
+        window.draw(outerMost);
+        window.draw(firstInner);
+        window.draw(secondInner);
+        window.draw(almostMiddle);
+        window.draw(center);
+        window.display();
+    }
+    drawTarget(20, 200, 200, 80, 90);
 }
 
 //value for percent is what percentage of the diameter is taken up by the outermost circle
@@ -31,21 +47,5 @@ void drawTarget(int percent, int width, int height, int x, int y) {
     center.setPosition(x/2-center.getRadius(), y/2-center.getRadius());
     
 
-    while (window.isOpen())
-    {
-        sf::Event event;
-        while (window.pollEvent(event))
-        {
-            if (event.type == sf::Event::Closed)
-                window.close();
-        }
-
-        window.clear();
-        window.draw(outerMost);
-        window.draw(firstInner);
-        window.draw(secondInner);
-        window.draw(almostMiddle);
-        window.draw(center);
-        window.display();
-    }
+    
 }
