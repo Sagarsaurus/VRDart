@@ -1,11 +1,66 @@
 #include <SFML/Graphics.hpp>
 #include <iostream>
+#include <pthread.h>
+
+#include <arpa/inet.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <netdb.h> 
 
 void drawTarget(int percent, int width, int height, int x, int y);
 
-int main()
+pthread_mutex_t netMutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_t* netThread;
+
+int hX;
+int hY;
+
+int initNetworking(char* address, int port)
 {
+    int sockfd;
+    struct sockaddr_in serverAddr;
+
+    sockfd=socket(AF_INET,SOCK_STREAM,0);
+
+    bzero(&serverAddr,sizeof(serverAddr));
+    serverAddr.sin_family = AF_INET;
+    serverAddr.sin_addr.s_addr=inet_addr(address);
+    serverAddr.sin_port=htons(port);
+
+    connect(sockfd, (struct sockaddr *)&serverAddr, sizeof(serverAddr));
+    return sockfd;
+}
+
+void *cv_comm(void *ptr)
+{
+    int buf[2];
+    int s = *((int*)ptr);
+    while(1)
+    {
+        recv(s,buf, sizeof(buf), 0);
+        pthread_mutex_lock( &netMutex ); 
+        hX = ntohl(buf[0]);
+        hY = ntohl(buf[1]);
+        std::cout << hX << std::endl;
+        std::cout << hY << std::endl;
+        pthread_mutex_unlock( &netMutex ); 
+    }
+}
+
+int main(int argc, char** argv)
+{
+  int s = initNetworking(argv[1], 56465);
+  int net1 = pthread_create(netThread, NULL, cv_comm, (void*)&s);
+  
   drawTarget(20, 200, 200, 80, 90);
+  
+  pthread_join(net1, NULL);
+  close(s);
 }
 
 //value for percent is what percentage of the diameter is taken up by the outermost circle
