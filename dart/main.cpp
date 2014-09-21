@@ -5,6 +5,8 @@
 #include "opencv2/nonfree/features2d.hpp"
 #include "opencv2/nonfree/nonfree.hpp"
 #include <iostream>
+#include <algorithm>
+#include <cmath>
 
 using namespace cv;
 
@@ -20,6 +22,8 @@ class VRDETECTOR {
         KeyPoint p;
         int count, age;
     };
+    
+    std::vector<PointCount> pointHistory;
     
 public:
     VRDETECTOR(){
@@ -43,22 +47,70 @@ public:
 
     }
     
+    bool inline isSimilar(KeyPoint p1, KeyPoint p2, int threshold){
+        return abs(p1.pt.x - p2.pt.x) < threshold &&
+            abs(p1.pt.y - p2.pt.y) < threshold &&
+            abs(p1.size - p2.size) < threshold;
+    }
+    
+    void updateRefPoints(std::vector<KeyPoint> keypoints){
+        std::vector<PointCount> newPoints;
+        for (KeyPoint new_p: keypoints){
+            bool isNew = true;
+            for (PointCount &old_p: pointHistory){
+                if (isSimilar(new_p, old_p.p, 50)) {
+                    old_p.count++;
+                    isNew = false;
+                    break;
+                }
+            }
+            if (isNew) {
+                newPoints.push_back({new_p, 0, 0});
+            }
+        }
+        for (PointCount &old_p: pointHistory){
+            old_p.age++;
+        }
+        pointHistory.erase(std::remove_if(pointHistory.begin(), pointHistory.end(), [](PointCount p){
+            return (p.age > 3) && (((float)p.count / p.age) < 0.95);
+        }), pointHistory.end());
+        for (PointCount new_p: newPoints)
+            pointHistory.push_back(new_p);
+        refPoints.clear();
+        for (PointCount p: pointHistory)
+            refPoints.push_back(p.p);
+        for( std::vector<PointCount>::const_iterator i = pointHistory.begin(); i != pointHistory.end(); ++i)
+            if (i->age > 25) {
+                std::cout << " ("<< (int) i->p.pt.x << ' '<< (int) i->p.pt.y << ") ";
+            }
+        std::cout << std::endl;
+        for( std::vector<PointCount>::const_iterator i = pointHistory.begin(); i != pointHistory.end(); ++i)
+            if(i->age < 7) {
+                std::cout << " ("<< (int) i->p.pt.x << ' '<< (int) i->p.pt.y << ") ";
+            }
+        std::cout << std::endl;
+    }
+    
     void eventLoop(){
         Mat image;
         std::vector<KeyPoint> keypoints;
         while (true){
             cap >> image; // get a new frame from camera
             
+            //cvtColor(image,image,CV_RGB2GRAY);
+            
             image.convertTo(image, -1, 2, 0);
             
             detector.detect( image, keypoints );
             
-            std::cout<<keypoints.size()<<std::endl;
+            updateRefPoints(keypoints);
+            
+            std::cout<<keypoints.size()<< " " << pointHistory.size()<< std::endl;
             
             //-- Draw keypoints
             Mat img_keypoints_1;
             
-            drawKeypoints( image, keypoints, img_keypoints_1, Scalar::all(-1), DrawMatchesFlags::DEFAULT );
+            drawKeypoints( image, refPoints, img_keypoints_1, Scalar(255, 255, 255), DrawMatchesFlags::DEFAULT );
             
             imshow("feed", img_keypoints_1);
             
