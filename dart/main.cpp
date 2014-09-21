@@ -54,7 +54,7 @@ public:
         params.minDistBetweenBlobs = 50.0f;
         params.filterByInertia = false;
         params.filterByConvexity = false;
-        params.filterByColor = false;
+        params.filterByColor = true;
         params.filterByCircularity = false;
         params.filterByArea = true;
         params.minArea = 200.0f;
@@ -171,6 +171,13 @@ public:
             cap >> image; // get a new frame from camera
             
             //cvtColor(image,image,CV_RGB2GRAY);
+            
+            vector<Mat> channels(3);
+            
+            split(image, channels);
+            
+            image = channels[2];
+            
             image = image(cv::Rect(100, 100, 600, 500));
             
             image.convertTo(image, -1, 2, 0);
@@ -242,13 +249,13 @@ void *ui_comm( void *ptr )
 
 int main( int argc, char** argv )
 {
-    int s = initNetwork(56465);
-    int net1 = pthread_create(&netThread, NULL, ui_comm, (void*)&s);
+//    int s = initNetwork(56465);
+//    int net1 = pthread_create(&netThread, NULL, ui_comm, (void*)&s);
     VRDETECTOR det = VRDETECTOR();
         
     det.eventLoop();
-    pthread_join(net1, NULL);
-    close(s);
+//    pthread_join(net1, NULL);
+//  close(s);
     return 0;
 }
 
