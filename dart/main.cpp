@@ -109,12 +109,12 @@ public:
 
             
             for (PointCount old_p: pointHistory){
-                if(markTopX < 0 || markTopY < 0 || (markTopX < old_p.p.pt.x && markTopY < old_p.p.pt.y))
+                if(markTopX < 0 || markTopY < 0 || (old_p.age > 35 && markTopX > old_p.p.pt.x && markTopY > old_p.p.pt.y))
                 {
                     markTopX = old_p.p.pt.x;
                     markTopY = old_p.p.pt.y;
                 }
-                if(markBottomX < 0 || markBottomY < 0 || (markBottomX > old_p.p.pt.x && markBottomY > old_p.p.pt.y))
+                if(markBottomX < 0 || markBottomY < 0 || (old_p.age > 35 && markBottomX < old_p.p.pt.x && markBottomY < old_p.p.pt.y))
                 {
                     markBottomX = old_p.p.pt.x;
                     markBottomY = old_p.p.pt.y;
@@ -159,16 +159,16 @@ public:
         for (KeyPoint p: hitPoints)
             refPoints.push_back(p);
 
-        for( std::vector<PointCount>::const_iterator i = pointHistory.begin(); i != pointHistory.end(); ++i)
-            if (i->age > 25) {
-                std::cout << " ("<< (int) i->p.pt.x << ' '<< (int) i->p.pt.y << ") ";
-            }
-        std::cout << std::endl;
-        for( std::vector<PointCount>::const_iterator i = pointHistory.begin(); i != pointHistory.end(); ++i)
-            if(i->age < 7) {
-                std::cout << " ("<< (int) i->p.pt.x << ' '<< (int) i->p.pt.y << ") ";
-            }
-        std::cout << std::endl;
+//        for( std::vector<PointCount>::const_iterator i = pointHistory.begin(); i != pointHistory.end(); ++i)
+//            if (i->age > 25) {
+//                std::cout << " ("<< (int) i->p.pt.x << ' '<< (int) i->p.pt.y << ") ";
+//            }
+//        std::cout << std::endl;
+//        for( std::vector<PointCount>::const_iterator i = pointHistory.begin(); i != pointHistory.end(); ++i)
+//            if(i->age < 7) {
+//                std::cout << " ("<< (int) i->p.pt.x << ' '<< (int) i->p.pt.y << ") ";
+//            }
+//        std::cout << std::endl;
     }
     
     void eventLoop(){
@@ -193,7 +193,7 @@ public:
             
             updateRefPoints(keypoints);
             
-            std::cout<<keypoints.size()<< " " << pointHistory.size()<< std::endl;
+//            std::cout<<keypoints.size()<< " " << pointHistory.size()<< std::endl;
             
             //-- Draw keypoints
             Mat img_keypoints_1;
