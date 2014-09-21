@@ -3,9 +3,26 @@
 #include <iostream>
 #include <cmath>
 
+#include <arpa/inet.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <netdb.h>
+
 sf::Font font;
 int sizex = 1280, sizey = 720;
 int grid = sizey/10;
+
+pthread_mutex_t netMutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_t netThread;
+
+int hX;
+int hY;
+char newData = 0;
 
 class Target : public sf::Drawable {
     sf::CircleShape outerMost;
@@ -63,7 +80,7 @@ public:
     }
     
     bool hit(int x, int y){
-        return false;
+        return sqrt(pow(x - pos.x, 2) + pow(y - pos.y, 2)) < radius;
     }
     
     void update(){
@@ -100,7 +117,7 @@ public:
         
         // Load a sprite to display
         sf::Texture texture;
-        if (!texture.loadFromFile("/Users/ajmalkunnummal/Dropbox/Dev/VRDart/dartUI/dartUI/cute_image.jpg")) {
+        if (!texture.loadFromFile("./cute_image.jpg")) {
             std::cout<< "Coud not open cute_image.jpg";
         }
         sf::Sprite sprite(texture);
@@ -133,27 +150,63 @@ public:
     }
 };
 
+int initNetworking(const char* address, int port)
+{
+    int sockfd;
+    struct sockaddr_in serverAddr;
+
+    sockfd=socket(AF_INET,SOCK_STREAM,0);
+
+    bzero(&serverAddr,sizeof(serverAddr));
+    serverAddr.sin_family = AF_INET;
+    serverAddr.sin_addr.s_addr=inet_addr(address);
+    serverAddr.sin_port=htons(port);
+
+    connect(sockfd, (struct sockaddr *)&serverAddr, sizeof(serverAddr));
+    return sockfd;
+}
+
+void *cv_comm(void *ptr)
+{
+    int buf[2];
+    int s = *((int*)ptr);
+    while(1)
+    {
+        recv(s,buf, sizeof(buf), 0);
+        pthread_mutex_lock( &netMutex );
+        hX = ntohl(buf[0]);
+        hY = ntohl(buf[1]);
+        newData = 1;
+        std::cout << hX << std::endl;
+        std::cout << hY << std::endl;
+        pthread_mutex_unlock( &netMutex );
+    }
+}
+
 int main(int argc, char const** argv)
 {
+
+    int s = initNetworking(argv[1], 56465);
+    int net1 = pthread_create(&netThread, NULL, cv_comm, (void*)&s);
     // Create the main window
     sf::RenderWindow window(sf::VideoMode(sizex, sizey), "Darts!");
     window.setVerticalSyncEnabled(true);
 
     // Set the Icon
     sf::Image icon;
-    if (!icon.loadFromFile("/Users/ajmalkunnummal/Dropbox/Dev/VRDart/dartUI/dartUI/icon.png")) {
+    if (!icon.loadFromFile("./icon.png")) {
         return EXIT_FAILURE;
     }
     window.setIcon(icon.getSize().x, icon.getSize().y, icon.getPixelsPtr());
 
     // Load Font
-    if (!font.loadFromFile("/Users/ajmalkunnummal/Dropbox/Dev/VRDart/dartUI/dartUI/sansation.ttf")) {
+    if (!font.loadFromFile("./sansation.ttf")) {
         return EXIT_FAILURE;
     }
 
     // Load a music to play
     sf::Music music;
-    if (!music.openFromFile("/Users/ajmalkunnummal/Dropbox/Dev/VRDart/dartUI/dartUI/nice_music.ogg")) {
+    if (!music.openFromFile("./nice_music.ogg")) {
         return EXIT_FAILURE;
     }
     
@@ -183,8 +236,11 @@ int main(int argc, char const** argv)
         // Clear screen
         window.clear(sf::Color::White);
         
-        game.hit(grid*6, grid*6);
-
+        if(newData)
+        {
+            game.hit(hX, hY);
+            newData = 0;
+        }
         game.update();
         
         game.draw(window);
