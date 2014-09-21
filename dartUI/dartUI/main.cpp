@@ -88,14 +88,19 @@ protected:
 
 class GameScreen {
     std::vector<Target> targets;
+    sf::CircleShape ref;
     sf::Text text;
     int score;
 public:
     GameScreen(int sizex, int sizey){
         score = 0;
         
+        ref = sf::CircleShape(0.5*grid);
+        ref.setPosition(0.25*grid, 0.25*grid);
+        ref.setFillColor(sf::Color::Black);
+        
         text = sf::Text("0", font, grid * .5);
-        text.setColor(sf::Color::Black);
+        text.setColor(sf::Color::Red);
         text.setPosition(sizex-1.5*grid, grid*.25);
         
         // Load a sprite to display
@@ -126,6 +131,7 @@ public:
     }
     
     void draw(sf::RenderWindow &window){
+        window.draw(ref);
         for (Target target: targets){
             window.draw(target);
         }
