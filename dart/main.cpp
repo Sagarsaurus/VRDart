@@ -249,13 +249,13 @@ void *ui_comm( void *ptr )
 
 int main( int argc, char** argv )
 {
-//    int s = initNetwork(56465);
-//    int net1 = pthread_create(&netThread, NULL, ui_comm, (void*)&s);
+    int s = initNetwork(56465);
+    int net1 = pthread_create(&netThread, NULL, ui_comm, (void*)&s);
     VRDETECTOR det = VRDETECTOR();
         
     det.eventLoop();
 //    pthread_join(net1, NULL);
-//  close(s);
+  close(s);
     return 0;
 }
 
