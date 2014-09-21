@@ -15,7 +15,7 @@
 void drawTarget(int percent, int width, int height, int x, int y);
 
 pthread_mutex_t netMutex = PTHREAD_MUTEX_INITIALIZER;
-pthread_t* netThread;
+pthread_t netThread;
 
 int hX;
 int hY;
@@ -55,7 +55,7 @@ void *cv_comm(void *ptr)
 int main(int argc, char** argv)
 {
   int s = initNetworking(argv[1], 56465);
-  int net1 = pthread_create(netThread, NULL, cv_comm, (void*)&s);
+  int net1 = pthread_create(&netThread, NULL, cv_comm, (void*)&s);
   
   drawTarget(20, 200, 200, 80, 90);
   
