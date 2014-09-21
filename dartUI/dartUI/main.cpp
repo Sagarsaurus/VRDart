@@ -106,16 +106,20 @@ protected:
 
 class GameScreen {
     std::vector<Target> targets;
-    sf::CircleShape ref;
+    sf::CircleShape ref1, ref2;
     sf::Text text;
     int score;
 public:
     GameScreen(int sizex, int sizey){
         score = 0;
         
-        ref = sf::CircleShape(0.5*grid);
-        ref.setPosition(0.25*grid, 0.25*grid);
-        ref.setFillColor(sf::Color::Black);
+        ref1 = sf::CircleShape(0.5*grid);
+        ref1.setPosition(0.25*grid, 0.25*grid);
+        ref1.setFillColor(sf::Color::Black);
+        
+        ref2 = sf::CircleShape(0.5*grid);
+        ref2.setPosition(sizex - 0.75*grid, sizey - 0.75*grid);
+        ref2.setFillColor(sf::Color::Black);
         
         text = sf::Text("0", font, grid * .5);
         text.setColor(sf::Color::Red);
@@ -150,7 +154,8 @@ public:
     }
     
     void draw(sf::RenderWindow &window){
-        window.draw(ref);
+        window.draw(ref1);
+        window.draw(ref2);
         for (Target target: targets){
             window.draw(target);
         }
