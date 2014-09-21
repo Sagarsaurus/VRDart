@@ -8,6 +8,15 @@
 #include <algorithm>
 #include <cmath>
 #include <pthread.h>
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <netdb.h> 
 using namespace cv;
 
 double alpha; /**< Simple contrast control */
@@ -19,6 +28,7 @@ pthread_t netThread;
 
 float hX;
 float hY;
+char readyToSend = 0;
 
 class VRDETECTOR {
     VideoCapture cap;
@@ -97,10 +107,10 @@ public:
 
             
             for (PointCount old_p: pointHistory){
-                if(markX < 0 || markY < 0 || (markX < old_p.pt.x && markY < old_p.pt.y))
+                if(markX < 0 || markY < 0 || (markX < old_p.p.pt.x && markY < old_p.p.pt.y))
                 {
-                    markX = old_p.pt.x;
-                    markY = old_p.pt.y
+                    markX = old_p.p.pt.x;
+                    markY = old_p.p.pt.y;
                 }
             }
            
@@ -108,8 +118,9 @@ public:
             pthread_mutex_lock( &netMutex );
             hX = hitX - markX;
             hY = hitY - markY;
+            readyToSend = 1;
             pthread_cond_signal( &netCond);
-            pthread_mutex_unlock(&netMutex)
+            pthread_mutex_unlock(&netMutex);
             
             hitPoints.push_back(KeyPoint(hitX, hitY, 1));
             sockHit = 0;
@@ -193,16 +204,16 @@ int initNetwork(int port)
 
     listenfd=socket(AF_INET,SOCK_STREAM,0);
 
-    bzero(&servaddr,sizeof(servaddr));
-    servaddr.sin_family = AF_INET;
-    servaddr.sin_addr.s_addr=htonl(INADDR_ANY);
-    servaddr.sin_port=htons(port);
-    bind(listenfd,(struct sockaddr *)&servaddr,sizeof(servaddr));
+    bzero(&serverAddr,sizeof(serverAddr));
+    serverAddr.sin_family = AF_INET;
+    serverAddr.sin_addr.s_addr=htonl(INADDR_ANY);
+    serverAddr.sin_port=htons(port);
+    bind(listenfd,(struct sockaddr *)&serverAddr,sizeof(serverAddr));
 
     listen(listenfd,1024); 
     connfd = accept(listenfd,(struct sockaddr *)&clientAddr,&clientLen);
 
-    return connfd
+    return connfd;
 }
 
 void *ui_comm( void *ptr )
@@ -210,31 +221,30 @@ void *ui_comm( void *ptr )
     
     int buf[2];
     int rc = 0;
-    int s = *ptr;
+    int s = *((int*)ptr);
     while(1)
     {
         pthread_mutex_lock( &netMutex );
-        while ((hX < 0.0 || hY < 0.0) && rc == 0)
+        while (!readyToSend && rc == 0)
         {
             rc = pthread_cond_wait( &netCond, &netMutex );
         }
         buf[0] = htonl((int)hX);
         buf[1] = htonl((int)hY);
-        hX = -1.0;
-        hY = -1.0;
-        
+        readyToSend = 0; 
         pthread_mutex_unlock(&netMutex);
         
-        send(s, buf, sizeof(buf),0); 
+        send(s, buf, sizeof(buf),0);
+        std::cout << "test" << std::endl; 
     }
 }
 
 int main( int argc, char** argv )
 {
-    VRDETECTOR det = VRDETECTOR();
     int s = initNetwork(56465);
-    int net1 = pthread_create(netThread, NULL, ui_comm, &s);
-    
+    int net1 = pthread_create(&netThread, NULL, ui_comm, (void*)&s);
+    VRDETECTOR det = VRDETECTOR();
+        
     det.eventLoop();
     pthread_join(net1, NULL);
     close(s);
