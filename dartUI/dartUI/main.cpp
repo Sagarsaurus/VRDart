@@ -80,6 +80,7 @@ public:
     }
     
     bool hit(int x, int y){
+        std::cout << sqrt(pow(x - pos.x + radius, 2) + pow(y - pos.y + radius, 2)) << std::endl;
         return sqrt(pow(x - pos.x, 2) + pow(y - pos.y, 2)) < radius;
     }
     
@@ -127,12 +128,13 @@ public:
         }
         sf::Sprite sprite(texture);
         
-        targets.push_back(Target(-grid*4, grid*2.5, grid, 10, 0, 10));
-        targets.push_back(Target(-grid*4, grid*5.5, grid, 15, 0, 15));
-        targets.push_back(Target(-grid*4, grid*8.5, grid, 5, 0, 5));
+        targets.push_back(Target(-grid*4, grid*2.5, grid, 1, 0, 1));
+        targets.push_back(Target(-grid*4, grid*5.5, grid, 1, 0, 1));
+        targets.push_back(Target(-grid*4, grid*8.5, grid, 1, 0, 1));
     }
     
     void hit(int x, int y){
+        targets.push_back(Target(x, y, 30, 0, 0, 1));
         for (Target &target: targets){
             if (target.hit(x, y)) {
                 score += target.getScore();
@@ -183,8 +185,6 @@ void *cv_comm(void *ptr)
         hX = ntohl(buf[0]);
         hY = ntohl(buf[1]);
         newData = 1;
-        std::cout << hX << std::endl;
-        std::cout << hY << std::endl;
         pthread_mutex_unlock( &netMutex );
     }
 }
@@ -244,7 +244,7 @@ int main(int argc, char const** argv)
         
         if(newData)
         {
-            game.hit(hX, hY);
+            game.hit(grid * 2.5 + grid * 0.5 + hX, grid * 2.5 + grid * 0.5 + hY);
             newData = 0;
         }
         game.update();
