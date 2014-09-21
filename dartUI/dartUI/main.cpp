@@ -1,23 +1,11 @@
-
-//
-// Disclamer:
-// ----------
-//
-// This code will work only if you selected window, graphics and audio.
-//
-// In order to load the resources like cute_image.png, you have to set up
-// your target scheme :
-//
-// - Select "Edit Scheme…" in the "Product" menu;
-// - Check the box "use custom working directory";
-// - Fill the text field with the folder path containing your resources;
-//        (e.g. your project folder)
-// - Click OK.
-//
-
 #include <SFML/Audio.hpp>
 #include <SFML/Graphics.hpp>
+#include <iostream>
+#include <cmath>
 
+sf::Font font;
+int sizex = 1280, sizey = 720;
+int grid = sizey/10;
 
 class Target : public sf::Drawable {
     sf::CircleShape outerMost;
@@ -25,14 +13,18 @@ class Target : public sf::Drawable {
     sf::CircleShape secondInner;
     sf::CircleShape almostMiddle;
     sf::CircleShape center;
+    sf::Vector2f pos;
+    sf::Vector2f speed;
+    float radius;
+    int score;
     
 public:
-    Target(float x, float y, float radius){
-        outerMost = sf::CircleShape(radius);
-        firstInner = sf::CircleShape(.8*radius);
-        secondInner = sf::CircleShape(.6*radius);
-        almostMiddle = sf::CircleShape(.4*radius);
-        center = sf::CircleShape(.2*radius);
+    Target(float x, float y, float radius, float speedx, float speedy, int score){
+        outerMost = sf::CircleShape();
+        firstInner = sf::CircleShape();
+        secondInner = sf::CircleShape();
+        almostMiddle = sf::CircleShape();
+        center = sf::CircleShape();
         
         outerMost.setFillColor(sf::Color::Magenta);
         firstInner.setFillColor(sf::Color::White);
@@ -40,12 +32,49 @@ public:
         almostMiddle.setFillColor(sf::Color::White);
         center.setFillColor(sf::Color::Magenta);
         
-        outerMost.setPosition(x/2-outerMost.getRadius(), y/2-outerMost.getRadius());
-        firstInner.setPosition(x/2-firstInner.getRadius(), y/2-firstInner.getRadius());
-        secondInner.setPosition(x/2-secondInner.getRadius(), y/2-secondInner.getRadius());
-        almostMiddle.setPosition(x/2-almostMiddle.getRadius(), y/2-almostMiddle.getRadius());
-        center.setPosition(x/2-center.getRadius(), y/2-center.getRadius());
+        set(x, y, radius);
+        pos = sf::Vector2f(x, y);
+        speed = sf::Vector2f(speedx, speedy);
+        this->radius = radius;
+        this->score = score;
     }
+    
+    void set(float x, float y, float radius){
+        outerMost.setRadius(radius);
+        firstInner.setRadius(.8*radius);
+        secondInner.setRadius(.6*radius);
+        almostMiddle.setRadius(.4*radius);
+        center.setRadius(.2*radius);
+        
+        outerMost.setPosition(x-outerMost.getRadius(), y-outerMost.getRadius());
+        firstInner.setPosition(x-firstInner.getRadius(), y-firstInner.getRadius());
+        secondInner.setPosition(x-secondInner.getRadius(), y-secondInner.getRadius());
+        almostMiddle.setPosition(x-almostMiddle.getRadius(), y-almostMiddle.getRadius());
+        center.setPosition(x-center.getRadius(), y-center.getRadius());
+    }
+    
+    void setSpeed(float x, float y){
+        speed.x = x;
+        speed.y = y;
+    }
+    
+    int getScore(){
+        return score;
+    }
+    
+    bool hit(int x, int y){
+        return false;
+    }
+    
+    void update(){
+        pos += speed;
+        set(pos.x, pos.y, radius);
+        
+        if (pos.x > sizex + grid*3 || pos.x < -grid*4 - abs(speed.x)) {
+            speed.x = -speed.x;
+        }
+    }
+
     
 protected:
     void draw (sf::RenderTarget &target, sf::RenderStates states) const {
@@ -57,10 +86,58 @@ protected:
     }
 };
 
+class GameScreen {
+    std::vector<Target> targets;
+    sf::Text text;
+    int score;
+public:
+    GameScreen(int sizex, int sizey){
+        score = 0;
+        
+        text = sf::Text("0", font, grid * .5);
+        text.setColor(sf::Color::Black);
+        text.setPosition(sizex-1.5*grid, grid*.25);
+        
+        // Load a sprite to display
+        sf::Texture texture;
+        if (!texture.loadFromFile("/Users/ajmalkunnummal/Dropbox/Dev/VRDart/dartUI/dartUI/cute_image.jpg")) {
+            std::cout<< "Coud not open cute_image.jpg";
+        }
+        sf::Sprite sprite(texture);
+        
+        targets.push_back(Target(-grid*4, grid*2.5, grid, 10, 0, 10));
+        targets.push_back(Target(-grid*4, grid*5.5, grid, 15, 0, 15));
+        targets.push_back(Target(-grid*4, grid*8.5, grid, 5, 0, 5));
+    }
+    
+    void hit(int x, int y){
+        for (Target &target: targets){
+            if (target.hit(x, y)) {
+                score += target.getScore();
+            }
+        }
+    }
+    
+    void update(){
+        for (Target &target: targets){
+            target.update();
+        }
+        text.setString(std::to_string(score));
+    }
+    
+    void draw(sf::RenderWindow &window){
+        for (Target target: targets){
+            window.draw(target);
+        }
+        window.draw(text);
+    }
+};
+
 int main(int argc, char const** argv)
 {
     // Create the main window
-    sf::RenderWindow window(sf::VideoMode(1920, 1080), "Darts!");
+    sf::RenderWindow window(sf::VideoMode(sizex, sizey), "Darts!");
+    window.setVerticalSyncEnabled(true);
 
     // Set the Icon
     sf::Image icon;
@@ -69,31 +146,21 @@ int main(int argc, char const** argv)
     }
     window.setIcon(icon.getSize().x, icon.getSize().y, icon.getPixelsPtr());
 
-    // Load a sprite to display
-    sf::Texture texture;
-    if (!texture.loadFromFile("/Users/ajmalkunnummal/Dropbox/Dev/VRDart/dartUI/dartUI/cute_image.jpg")) {
-        return EXIT_FAILURE;
-    }
-    sf::Sprite sprite(texture);
-
-    // Create a graphical text to display
-    sf::Font font;
+    // Load Font
     if (!font.loadFromFile("/Users/ajmalkunnummal/Dropbox/Dev/VRDart/dartUI/dartUI/sansation.ttf")) {
         return EXIT_FAILURE;
     }
-    sf::Text text("Hello SFML", font, 50);
-    text.setColor(sf::Color::Black);
 
     // Load a music to play
     sf::Music music;
     if (!music.openFromFile("/Users/ajmalkunnummal/Dropbox/Dev/VRDart/dartUI/dartUI/nice_music.ogg")) {
         return EXIT_FAILURE;
     }
+    
+    GameScreen game = GameScreen(sizex, sizey);
 
     // Play the music
 //    music.play();
-    
-    Target t = Target(0, 0, 100);
 
     // Start the game loop
     while (window.isOpen())
@@ -115,12 +182,12 @@ int main(int argc, char const** argv)
 
         // Clear screen
         window.clear(sf::Color::White);
+        
+        game.hit(grid*6, grid*6);
 
-        // Draw the sprite
-        window.draw(t);
-
-        // Draw the string
-        window.draw(text);
+        game.update();
+        
+        game.draw(window);
 
         // Update the window
         window.display();
