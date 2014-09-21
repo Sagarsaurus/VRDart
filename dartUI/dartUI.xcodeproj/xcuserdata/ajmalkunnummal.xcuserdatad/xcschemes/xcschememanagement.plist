@@ -4,7 +4,7 @@
 <dict>
 	<key>SchemeUserState</key>
 	<dict>
-		<key>VRDart.xcscheme</key>
+		<key>dartUI.xcscheme</key>
 		<dict>
 			<key>orderHint</key>
 			<integer>0</integer>
@@ -12,7 +12,7 @@
 	</dict>
 	<key>SuppressBuildableAutocreation</key>
 	<dict>
-		<key>77232BB519CEA6CD0014FF88</key>
+		<key>772330AC19CEBDF60014FF88</key>
 		<dict>
 			<key>primary</key>
 			<true/>
